@@ -5,8 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.get("/scrape", async (req, res) => {
-  //const url = req.query.url; /
-  const url = 'https://explorer.gitcoin.co/#/round/42161/389/82'
+  const url = req.query.url;
   try {
     const data = await scrapeLogic(url);
     res.json(data);
