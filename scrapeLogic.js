@@ -1,7 +1,9 @@
+
 const puppeteer = require("puppeteer");
+const cheerio = require("cheerio");
 require("dotenv").config();
 
-const scrapeLogic = async (res) => {
+const scrapeLogic = async (url) => {
   const browser = await puppeteer.launch({
     args: [
       "--disable-setuid-sandbox",
@@ -14,38 +16,83 @@ const scrapeLogic = async (res) => {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   try {
     const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "networkidle0", timeout: 120000 });
+    const data1 = await page.content();
 
-    await page.goto("https://developer.chrome.com/");
+    if (!data1) {
+      throw new Error("Failed to load page content");
+    }
 
-    // Set screen size
-    await page.setViewport({ width: 1080, height: 1024 });
+    const $ = cheerio.load(data1);
+    let title = "";
+    let currentFundingReceived = "";
+    let contributors = "";
+    let timeLeft = "";
+    let createdOnText = "";
+    const textContent = [];
+    const hrefs = [];
 
-    // Type into search box
-    await page.type(".search-box__input", "automate beyond recorder");
+    const image = $("img.h-32.w-full.object-cover.lg\\:h-80.rounded.md\\:rounded-3xl");
+    const src = image.attr("src");
+    const alt = image.attr("alt");
 
-    // Wait and click on first result
-    const searchResultSelector = ".search-box__link";
-    await page.waitForSelector(searchResultSelector);
-    await page.click(searchResultSelector);
+    $("*").each((index, element) => {
+      const text = $(element).text().trim();
+      if (text.startsWith("Created on")) {
+        createdOnText = text;
+        return false; // Break the loop once found
+      }
+    });
 
-    // Locate the full title with a unique string
-    const textSelector = await page.waitForSelector(
-      "text/Customize and automate"
-    );
-    const fullTitle = await textSelector.evaluate((el) => el.textContent);
+    $("h1, h2, h3, h4, p").each((index, element) => {
+      const content = $(element).text().trim();
+      switch (index) {
+        case 0:
+          currentFundingReceived = content;
+          break;
+        case 1:
+          contributors = content;
+          break;
+        case 2:
+          timeLeft = content;
+          break;
+        case 3:
+          title = content;
+          break;
+        default:
+          textContent.push(content);
+      }
+    });
 
-    // Print the full title
-    const logStatement = `The title of this blog post is ${fullTitle}`;
-    console.log(logStatement);
-    res.send(logStatement);
-  } catch (e) {
-    console.error(e);
-    res.send(`Something went wrong while running Puppeteer: ${e}`);
+    $("a").each((index, element) => {
+      const href = $(element).attr("href");
+      if (href && (href.includes("github.com") || href.includes("twitter.com"))) {
+        hrefs.push(href);
+      }
+    });
+
+    const data = {
+      title,
+      currentFundingReceived,
+      contributors,
+      timeLeft,
+      textContent,
+      src,
+      filteredHrefs: hrefs,
+      createdOnText,
+    };
+    console.log("Data", data);
+    return { ...data, url };
+  } catch (error) {
+    console.error(`Something went wrong while running Puppeteer: ${error}`);
+    throw error;
   } finally {
     await browser.close();
   }
 };
 
 module.exports = { scrapeLogic };
+
