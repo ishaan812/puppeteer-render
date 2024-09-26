@@ -1,0 +1,8 @@
+services:
+  ezframes-backend:
+    image: ezframes-backend
+    environment:
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - NODE_ENV=production
+      - OPENAI_API_KEY = 
