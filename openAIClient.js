@@ -1,5 +1,5 @@
-const OpenAI = require('openai');
+import OpenAI from 'openai';
 
 const client = new OpenAI(process.env.OPENAI_API_KEY);
 
-module.exports = client;
+export default client;
