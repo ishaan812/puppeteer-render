@@ -5,4 +5,6 @@ services:
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - NODE_ENV=production
-      - OPENAI_API_KEY = 
+      - OPENAI_API_KEY= 
+    ports:
+      - 80:4000
