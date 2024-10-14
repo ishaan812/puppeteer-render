@@ -1,6 +1,8 @@
 const express = require("express");
-const { scrapeLogic } = require("./gitcoinScrapeLogic");
-const { aiScrapeLogic } = require("./aiScrapeLogic");
+const cron = require("node-cron");
+const { scrapeLogic } = require("./utils/gitcoinScrapeLogic");
+const { aiScrapeLogic } = require("./utils/aiScrapeLogic");
+const { fetchVaultData } = require("./utils/enzymeCronLogic");
 const app = express();
 
 require("dotenv").config();
@@ -30,6 +32,18 @@ app.get("/aiscrape", async (req, res) => {
 app.get("/", (req, res) => {
   res.send("Render Puppeteer server is up and running!");
 });
+
+// Schedule the cron job to run every 30 minutes
+cron.schedule('*/30 * * * *', async () => {
+  try {
+    console.log("Running the cron job...");
+    const data = await fetchVaultData("0x1b83ba4527c837d462d5b78d65a097dabae5ea89");
+    console.log(data);
+  } catch (error) {
+    console.error("Cron job error:", error.message || error);
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);

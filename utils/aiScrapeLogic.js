@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
-const client = require("./openAIClient");
+const client = require("../openAIClient");
 
 const aiScrapeLogic = async (url) => {
   const browser = await puppeteer.launch({
