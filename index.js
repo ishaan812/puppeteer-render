@@ -33,7 +33,6 @@ app.get("/", (req, res) => {
   res.send("Render Puppeteer server is up and running!");
 });
 
-// Schedule the cron job to run every 30 minutes
 cron.schedule('*/30 * * * *', async () => {
   try {
     console.log("Running the cron job...");
